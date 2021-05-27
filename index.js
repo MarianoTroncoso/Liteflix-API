@@ -1,15 +1,19 @@
 require('dotenv').config();
 const express = require('express');
+const bodyParser = require('body-parser');
 const { dbCon } = require('./config');
 const { movieRouter } = require('./routes');
 
 const app = express();
 
+// middlewares
+app.use(express.json());
+app.use(express.urlencoded({
+  extended: true
+}));
+
 // routes
 app.use('/movies', movieRouter);
-
-app.use(express.json()); // bodyparser está deprecado
-// app.use(cors());
 
 // conectar db
 dbCon();

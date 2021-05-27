@@ -11,8 +11,18 @@ const getMovies = async (req, res) => {
   }
 }
 
-const postMovie = (req, res) => {
-  res.send('post creation');
+const postMovie = async (req, res) => {
+
+  const newMovie = new Movie(req.body);
+
+  try {
+    
+    await newMovie.save();
+    res.status(201).json(newMovie);
+
+  } catch (error) {
+    res.status(409).json({ message: error.message });
+  }
 }
 
 module.exports = {
