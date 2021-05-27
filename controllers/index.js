@@ -1,5 +1,6 @@
-const { getMovies } = require('./movies');
+const { getMovies, postMovie } = require('./movies');
 
 module.exports = {
-  getMovies
+  getMovies,
+  postMovie
 }

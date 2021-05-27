@@ -1,8 +1,13 @@
 
 const getMovies = (req, res) => {
-  res.send('THIS WORKS!');
+  res.send('get movies');
+}
+
+const postMovie = (req, res) => {
+  res.send('post creation');
 }
 
 module.exports = {
-  getMovies
+  getMovies,
+  postMovie
 }
