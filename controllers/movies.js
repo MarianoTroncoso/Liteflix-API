@@ -1,6 +1,14 @@
+const { Movie } = require('../models');
 
-const getMovies = (req, res) => {
-  res.send('get movies');
+const getMovies = async (req, res) => {
+  try {
+
+    const movies = await Movie.find({});
+    res.status(200).json(movies);
+
+  } catch (error) {
+    res.status(404).json({ message: error.message})
+  }
 }
 
 const postMovie = (req, res) => {
