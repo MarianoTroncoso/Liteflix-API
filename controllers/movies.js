@@ -13,8 +13,7 @@ const getMovies = async (req, res) => {
 
 const postMovie = async (req, res) => {
 
-  console.log('req.body');
-  console.log(req.body);
+
 
   const newMovie = new Movie(req.body);
 
