@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
-const bodyParser = require('body-parser');
+const cors = require('cors')
+// const bodyParser = require('body-parser');
 const { dbCon } = require('./config');
 const { movieRouter } = require('./routes');
 
@@ -11,6 +12,7 @@ app.use(express.json());
 app.use(express.urlencoded({
   extended: true
 }));
+app.use(cors())
 
 // routes
 app.use('/movies', movieRouter);

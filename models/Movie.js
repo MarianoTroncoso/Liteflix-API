@@ -2,12 +2,13 @@ const mongoose = require('mongoose');
 
 const movieSchema = new mongoose.Schema({
   //! TODO: AGREGAR IMAGEN
-  /*
+  
   image: {
     data: Buffer,
-    contentType: String
+    // contentType: String
+    
   },
-  */
+  
   name: {
     type: String,
     required: true
