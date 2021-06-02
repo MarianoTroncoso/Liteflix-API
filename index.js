@@ -93,12 +93,6 @@ app.post('/movies', upload.single('file'), async (req, res) => {
 
   console.log('post upload');
 
-  // una vez que guarda la imagen (middleware) tengo que asociar de alguna manera la pelicula
-  // eso lo voy a hacer con el filename (o el id)
-
-  // post movie
-  // const newMovie = new Movie(req.body);
-
   console.log('voy a guardar esta peli')
   console.log({
     name: req.body.name,
@@ -115,15 +109,12 @@ app.post('/movies', upload.single('file'), async (req, res) => {
   try {
     
     await newMovie.save();
-    console.log('pelicula guardada')
-
-    // res.status(201).json(newMovie);
+    res.status(201).json(newMovie); //! ACÁ ESTA DEVOLVIENDO, O NO?
 
   } catch (error) {
-    // res.status(409).json({ message: error.message });
+    res.status(409).json({ message: error.message });
   }
 
-  // res.redirect('/')
 })
 
 
@@ -196,6 +187,7 @@ app.delete('/files/:id', (req, res) => {
   }
   )
 });
+
 
 // routes
 app.use('/movies', movieRouter);
