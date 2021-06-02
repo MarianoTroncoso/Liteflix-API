@@ -7,11 +7,13 @@ const crypto = require('crypto');
 const multer = require('multer');
 const GridFsStorage = require('multer-gridfs-storage');
 const Grid = require('gridfs-stream');
+
 const methodOverride = require('method-override');
 
 const cors = require('cors');
-// const { dbCon } = require('./config'); 
+const { dbCon } = require('./config'); 
 const { movieRouter } = require('./routes');
+const { Movie } = require('./models');
 
 const app = express();
 
@@ -24,31 +26,44 @@ app.use(methodOverride('_method'));
 app.use(cors());
 
 // crear mongo connection
-/*
-const conn = async() => {
-  try {
-    await mongoose.createConnection(
-      process.env.MONGO_URI, 
-      {useNewUrlParser: true, useUnifiedTopology: true}, 
-    );
 
-    console.log('MongoDB is Connected...');
+mongoose.connect(process.env.MONGO_URI, {useNewUrlParser: true, useUnifiedTopology: true}, () => {
+  console.log('Me conecté a Mongo :D')
+})
 
-  } catch (error) {
-    console.log(error.message);
-  };
-};
-*/
-const conn = mongoose.createConnection(process.env.MONGO_URI, {useNewUrlParser: true, useUnifiedTopology: true},)
+let gfs;
+const conn = mongoose.connection;
+conn.once('open', () => {
+  gfs = Grid(conn.db, mongoose.mongo);
+  gfs.collection('uploads');
+});
+
+// const conn = async() => {
+//   try {
+//     await mongoose.createConnection(
+//       process.env.MONGO_URI, 
+//       {useNewUrlParser: true, useUnifiedTopology: true}, 
+//     );
+
+//     console.log('MongoDB is Connected...');
+
+//   } catch (error) {
+//     console.log(error.message);
+//   };
+// };
+
+// const conn = mongoose.createConnection(process.env.MONGO_URI, {useUnifiedTopology: true, useNewUrlParser: true})
 
 // init gft
+/*
 let gfs;
 conn.once('open', () => {
   // init stream
   gfs = Grid(conn.db, mongoose.mongo);
   gfs.collection('uploads');
-  // console.log(gfs)
+
 });
+*/
 
 // store engine
 const storage = new GridFsStorage({
@@ -59,6 +74,7 @@ const storage = new GridFsStorage({
         if (err) {
           return reject(err)
         }
+
         const filename = buf.toString('hex') + path.extname(file.originalname);
         const fileInfo = {
           filename: filename,
@@ -68,16 +84,48 @@ const storage = new GridFsStorage({
       })
     })
   },
-})
-
+});
 const upload = multer({ storage })
 
 // upload.single('file') <-- mismo nombre que el input type file en el form
-app.post('/upload', upload.single('file'), (req, res) => {
-  // console.log(req.file)
-  // res.json({file: req.file})
-  res.redirect('/')
+
+app.post('/movies', upload.single('file'), async (req, res) => {
+
+  console.log('post upload');
+
+  // una vez que guarda la imagen (middleware) tengo que asociar de alguna manera la pelicula
+  // eso lo voy a hacer con el filename (o el id)
+
+  // post movie
+  // const newMovie = new Movie(req.body);
+
+  console.log('voy a guardar esta peli')
+  console.log({
+    name: req.body.name,
+    category: req.body.category,
+    image: req.file.filename 
+  })
+
+  const newMovie = new Movie({
+    name: req.body.name,
+    category: req.body.category,
+    image: req.file.filename 
+  });
+
+  try {
+    
+    await newMovie.save();
+    console.log('pelicula guardada')
+
+    // res.status(201).json(newMovie);
+
+  } catch (error) {
+    // res.status(409).json({ message: error.message });
+  }
+
+  // res.redirect('/')
 })
+
 
 // all files 
 app.get('/files', (req, res) => {
@@ -93,7 +141,7 @@ app.get('/files', (req, res) => {
   })
 })
 
-// one file
+// one file //! CREO QUE NO LO USARÍA 
 app.get('/files/:filename', (req, res) => {
   gfs.files.findOne({filename: req.params.filename}, (err, file) => {
     // hay archivo?
@@ -108,8 +156,7 @@ app.get('/files/:filename', (req, res) => {
   });
 })
 
-
-// one file
+// one file //! CREO QUE NO LO USARÍA
 app.get('/image/:filename', (req, res) => {
   gfs.files.findOne({filename: req.params.filename}, (err, file) => {
     // hay archivo?
@@ -121,21 +168,37 @@ app.get('/image/:filename', (req, res) => {
 
     // es imagen?
     if(file.contentType === 'image/jpeg' || file.contentType === 'image/jpg' || file.contentType === 'image/png'  ){
-      console.log('es imagen')
+      // console.log('es imagen')
       const readstream = gfs.createReadStream(file.filename)
       readstream.pipe(res)
     } else{
-      console.log('no es imagen');
+      // console.log('no es imagen');
       res.status(404).json({
         err: 'Not an image'
       })
     }
   });
-})
+});
 
+// delete imagen //! CREO QUE NO LO USARÍA (el usuario)
+app.delete('/files/:id', (req, res) => {
+  // remove
+  gfs.remove({_id: req.params.id, root:'uploads'}, (err, gridStore) => {
+    if(err){
+      return res.status(404).json({
+        err: err
+      })
+    }
+    // res.redirect('/')
+    res.json({
+      message: 'Deleted'
+    })
+  }
+  )
+});
 
 // routes
-// app.use('/movies', movieRouter);
+app.use('/movies', movieRouter);
 
 // conectar db
 // dbCon();

@@ -13,8 +13,6 @@ const getMovies = async (req, res) => {
 
 const postMovie = async (req, res) => {
 
-
-
   const newMovie = new Movie(req.body);
 
   try {
